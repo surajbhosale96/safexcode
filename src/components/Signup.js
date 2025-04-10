@@ -12,7 +12,7 @@ import {
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { v4 as uuidv4 } from 'uuid';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, setDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase';
 import indiaData from '../states-and-districts.json';
 import { useUser } from '../context/UserContext';
@@ -95,6 +95,9 @@ function Signup() {
     if (!validate() || !emailVerified) return;
 
     const uid = uuidv4();
+    const uniqueCode = Math.floor(1000000 + Math.random() * 9000000).toString();
+    const trialExpiry = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000); // 3 days
+
     const userData = {
       uid,
       name,
@@ -122,12 +125,29 @@ function Signup() {
       vehicleCode: '',
     };
 
+    const uuidData = {
+      caller_id: `tel:08045680686,${uniqueCode}#`,
+      callsReceived: 0,
+      createdAt: new Date().toISOString(),
+      createdBy: 'self',
+      isActive: true,
+      lastCallTime: null,
+      mobile_number: `+91${mobileNumber}`,
+      qrType: 'digital',
+      subscriptionStatus: 'trial',
+      trialExpiry: trialExpiry.toISOString(),
+      uniqueCode: uniqueCode,
+      userId: uid,
+    };
+
     try {
-      await addDoc(collection(db, 'users'), userData);
+      await setDoc(doc(db, 'users', uid), userData);
+      await setDoc(doc(db, 'uuid', uniqueCode), uuidData);
+
       login(userData);
       navigate('/payment');
     } catch (error) {
-      console.error('Error saving user:', error);
+      console.error('Error saving user or uuid:', error);
     }
   };
 

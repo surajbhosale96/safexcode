@@ -55,6 +55,7 @@ function PaymentSuccess() {
     <Container sx={{ mt: 10 }}>
       <Typography variant="h4" align="center" color="primary">
         Payment Successful ✅
+        You can continue using mobile application.
       </Typography>
      
     </Container>
